@@ -1,8 +1,8 @@
-FROM centos:7
+FROM registry.access.redhat.com/rhel7.5
 
 ## Build Env vars
-ARG OO_VERSION=3.2.0
-ARG OO_TGZ_URL="http://ftp5.gwdg.de/pub/openoffice/archive/stable/${OO_VERSION}/OOo_${OO_VERSION}_Linux_x86-64_install-rpm-wJRE_en-US.tar.gz"
+ARG OO_VERSION=3.2.1
+ARG OO_TGZ_URL="http://ftp5.gwdg.de/pub/openoffice/archive/localized/fr/${OO_VERSION}/OOo_${OO_VERSION}_Linux_x86-64_install-rpm-wJRE_fr.tar.gz"
 
 ENV SOFFICE_DAEMON_PORT=8100
 ENV APP_ROOT=/opt/app-root
@@ -22,8 +22,16 @@ LABEL name="rafaeltuelho/openoffice3-daemon" \
       io.openshift.expose-services="soffice" \
       io.openshift.tags="openoffice,headless,daemon,starter-arbitrary-uid,starter,arbitrary,uid"
 
+USER root
+
 ### Setup user for build execution and application runtime
 COPY pkgs/ /tmp/
+
+ARG RH_LOGIN
+ARG RH_PASSWORD
+
+RUN subscription-manager register --username=${RH_LOGIN}  --password=${RH_PASSWORD} && \
+  subscription-manager repos --enable=rhel-7-server-rpms --enable=rhel-7-server-optional-rpms --enable="rhel-*-extras-rpms"
 
 #RUN tar -zxf /tmp/OO*.tar.gz -C /tmp && \
 RUN (curl -0 $OO_TGZ_URL | tar -zx -C /tmp) && \
